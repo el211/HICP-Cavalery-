@@ -1,0 +1,238 @@
+# ============================================
+#  HICP_Cavalry Configuration
+# ============================================
+# This plugin adds realistic mount mechanics including:
+# - Normalized horse stats
+# - Armor-based penalties
+# - Environment-based penalties
+# - Traversal restrictions
+# - Mounted combat bonuses
+
+# ============================================
+# DEBUG SETTINGS
+# ============================================
+debug:
+  # Master debug toggle - enables all debug logging
+  enabled: true
+  
+  # Specific debug categories (only work if debug.enabled is true)
+  horses:
+    # Log when horses are normalized on spawn/mount
+    normalization: true
+    # Log stat calculations for horses
+    stat_calculations: true
+    # Log base stats being stored in PDC
+    pdc_storage: true
+  
+  camels:
+    # Log camel detection and penalty application
+    penalty_application: true
+    # Log when camels are processed
+    processing: true
+  
+  armor:
+    # Log armor point calculations
+    armor_points: true
+    # Log armor penalty calculations
+    penalty_calculations: true
+  
+  environment:
+    # Log environment detection (mud, snow, etc)
+    block_detection: true
+    # Log environment penalty calculations
+    penalty_calculations: true
+    # Log storm/weather checks
+    weather_checks: true
+  
+  combat:
+    # Log sword detection and reach bonus application
+    reach_bonus: true
+    # Log when reach modifiers are added/removed
+    modifier_changes: true
+  
+  traversal:
+    # Log cliff detection events
+    cliff_detection: true
+    # Log water depth checks
+    water_checks: true
+    # Log hazard detection (lava, magma)
+    hazard_detection: true
+    # Log movement blocking events
+    movement_blocked: true
+  
+  performance:
+    # Log tick execution times (warning: very spammy!)
+    tick_timing: false
+    # Log player mount state every tick
+    mount_state: false
+
+# ============================================
+# HORSES
+# ============================================
+horses:
+  # Enable horse modifications
+  enabled: true
+  
+  # Maximum health that horses spawn with
+  spawn_max_health: 30.0
+  
+  # Whether to fill health to max when spawning/mounting
+  spawn_health_fill: true
+  
+  # Speed cap in blocks per second
+  cap_speed_blocks_per_second: 7.127
+  
+  # Conversion factor: attribute value * factor = blocks per second
+  # Minecraft default: 0.225 attribute = 4.5 bps (factor ~20)
+  movement_speed_to_bps_factor: 20.0
+  
+  # Base jump height in blocks (applied to all horses)
+  base_jump_height_blocks: 3.0
+  
+  # Conversion factor: jump_strength * factor = jump height in blocks
+  jump_strength_to_blocks_factor: 5.0
+  
+  # Minimum allowed attribute value (prevents too-slow horses)
+  clamp_attribute_min: 0.05
+  
+  # Maximum allowed attribute value (prevents too-fast horses)
+  clamp_attribute_max: 0.60
+  
+  # Store original base stats in persistent data container
+  # Recommended: true (allows penalties to be calculated from original stats)
+  store_base_stats_in_pdc: true
+
+# ============================================
+# CAMELS
+# ============================================
+camels:
+  # Enable camel support (for traversal rules and mounted combat)
+  enabled: true
+  
+  # Store original base stats in persistent data container
+  store_base_stats_in_pdc: true
+  
+  # Whether to apply speed/jump penalties to camels
+  # false = camels remain vanilla (only traversal/combat rules apply)
+  # true = camels receive same armor/environment penalties as horses
+  apply_penalties: false
+
+# ============================================
+# ARMOR PENALTIES
+# ============================================
+armor_penalties:
+  # Enable armor-based speed and jump penalties
+  enabled: true
+  
+  # Speed reduction per armor point (percent)
+  # Example: 20 armor points = 20% speed reduction
+  speed_reduction_per_armor_point_percent: 1.0
+  
+  # Jump reduction per armor point (percent)
+  jump_reduction_per_armor_point_percent: 1.0
+  
+  # Maximum total reduction cap (percent)
+  # Prevents mounts from becoming completely immobile
+  max_total_reduction_percent: 60.0
+  
+  # Whether leather armor counts as 0 points
+  # true = leather gives no penalty (encourages light armor)
+  # false = leather counts normally (helmet=1, chest=3, legs=2, boots=1)
+  leather_counts_as_zero: true
+  
+  # Horse armor point values
+  # These are added to the rider's armor points
+  horse_armor_points:
+    LEATHER_HORSE_ARMOR: 0
+    COPPER_HORSE_ARMOR: 4
+    IRON_HORSE_ARMOR: 5
+    GOLDEN_HORSE_ARMOR: 7
+    DIAMOND_HORSE_ARMOR: 11
+    NETHERITE_HORSE_ARMOR: 19
+
+# ============================================
+# ENVIRONMENT PENALTIES
+# ============================================
+environment_penalties:
+  # Enable environment-based penalties
+  enabled: true
+  
+  # Additional reduction when on penalty blocks (percent)
+  # Applies to both speed and jump
+  extra_reduction_percent: 5.0
+  
+  # Which blocks cause penalties
+  blocks:
+    mud: true
+    muddy_mangrove_roots: true
+    snow: true
+  
+  # Whether storm weather is required for mud penalties
+  # true = mud only slows during rain/thunder
+  # false = mud always slows
+  require_storm_for_mud: true
+  
+  # Whether storm weather is required for snow penalties
+  # true = snow only slows during snowstorm
+  # false = snow always slows
+  require_storm_for_snow: true
+
+# ============================================
+# TRAVERSAL RULES
+# ============================================
+traversal_rules:
+  # Enable smart mount movement restrictions
+  enabled: true
+  
+  # Maximum cliff drop height mounts will walk off (blocks)
+  # Mounts refuse to walk off edges higher than this
+  # Set to 0 to disable cliff detection
+  cliff_drop_blocks: 2.5
+  
+  # How deep to scan for hazards below (blocks)
+  hazard_scan_depth_blocks: 2.5
+  
+  # Which blocks are considered hazards
+  hazards:
+    lava: true
+    magma_block: true
+  
+  # Water-specific rules
+  water:
+    # Enable water depth restrictions
+    enabled: true
+    
+    # Refuse to enter water this deep or deeper (blocks)
+    # 2 = refuses 2+ block deep water
+    refuse_if_depth_at_least_blocks: 2
+    
+    # Anti-stuck mechanic: allow water entry if completely surrounded
+    # Prevents mounts from getting stuck when already in water
+    anti_stuck_allow_if_all_neighbors_water: true
+
+# ============================================
+# MOUNTED COMBAT
+# ============================================
+mounted_combat:
+  # Enable mounted combat bonuses
+  enabled: true
+  
+  # Bonus reach when holding sword while mounted (blocks)
+  # Added to ENTITY_INTERACTION_RANGE attribute
+  sword_reach_bonus_blocks: 1.0
+  
+  # Only apply bonus to vanilla swords
+  # true = only wooden/stone/iron/golden/diamond/netherite swords
+  # false = any item ending in "_sword" gets bonus
+  apply_only_to_vanilla_swords: true
+
+# ============================================
+# PERFORMANCE
+# ============================================
+performance:
+  # How often to refresh mount stats (ticks)
+  # Lower = more responsive, higher CPU usage
+  # Higher = less responsive, lower CPU usage
+  # 20 ticks = 1 second
+  # Recommended: 20-40 for normal use, 2-5 only for testing
+  stat_refresh_period_ticks: 20

@@ -1,0 +1,4 @@
+name: HICP_Cavalry
+version: 1.0-SNAPSHOT
+main: fr.oreo.hICPCavalry.HICPCavalry
+api-version: "1.21"
