@@ -242,7 +242,7 @@ public final class VehicleMoveListener implements Listener {
      * - Anti-stuck: if horse already in water, allow movement so it can swim out
      */
     private boolean shouldRefuseWater(Block waterStartFeet, LivingEntity vehicle) {
-        int depthN = Math.max(2, cfg.waterRefuseDepthAtLeast);
+        int depthN = Math.max(1, cfg.waterRefuseDepthAtLeast);
 
         int depth = 0;
         Block cursor = waterStartFeet;
