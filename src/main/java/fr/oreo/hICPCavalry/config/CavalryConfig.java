@@ -29,12 +29,17 @@ public final class CavalryConfig {
     public final boolean debugTraversalMovementBlocked;
     public final boolean debugPerformanceTickTiming;
     public final boolean debugPerformanceMountState;
+    public final double horseArmorPointMultiplier;
 
     public final boolean horsesEnabled;
     public final double horseSpawnMaxHealth;
     public final boolean horseFillHealth;
     public final double horseCapBps;
     public final double speedToBpsFactor;
+    public final boolean leadSinkEnabled;
+    public final int leadSinkStartHorseArmorPoints;
+    public final double leadSinkDownVelocityPerTick;
+    public final int leadSinkTaskPeriodTicks;
 
     public final double horseBaseJumpBlocks;
     public final double jumpStrengthToBlocksFactor;
@@ -76,7 +81,7 @@ public final class CavalryConfig {
     public final boolean hazardMagma;
 
     public final boolean waterEnabled;
-    public final int waterRefuseDepthAtLeast;
+    public final double waterRefuseDepthAtLeast;
     public final boolean waterAntiStuck;
 
     public final boolean combatEnabled;
@@ -123,7 +128,7 @@ public final class CavalryConfig {
         camelsEnabled = c.getBoolean("camels.enabled", true);
         camelStoreBasePdc = c.getBoolean("camels.store_base_stats_in_pdc", true);
 
-        // NEW: camels stay vanilla unless explicitly allowed
+        // camels stay vanilla unless explicitly allowed
         camelApplyPenalties = c.getBoolean("camels.apply_penalties", false);
 
         armorEnabled = c.getBoolean("armor_penalties.enabled", true);
@@ -131,6 +136,11 @@ public final class CavalryConfig {
         jumpPenaltyPerPointPct = c.getDouble("armor_penalties.jump_reduction_per_armor_point_percent", 1.0);
         maxTotalReductionPct = c.getDouble("armor_penalties.max_total_reduction_percent", 60.0);
         leatherCountsAsZero = c.getBoolean("armor_penalties.leather_counts_as_zero", true);
+        horseArmorPointMultiplier = c.getDouble("armor_penalties.horse_armor_point_multiplier", 1.0);
+        leadSinkEnabled = c.getBoolean("traversal_rules.water.sinking_on_lead.enabled", true);
+        leadSinkStartHorseArmorPoints = c.getInt("traversal_rules.water.sinking_on_lead.start_sinking_at_horse_armor_points", 7);
+        leadSinkDownVelocityPerTick = c.getDouble("traversal_rules.water.sinking_on_lead.down_velocity_per_tick", 0.08);
+        leadSinkTaskPeriodTicks = c.getInt("traversal_rules.water.sinking_on_lead.task_period_ticks", 1);
 
         horseArmorPoints = new EnumMap<>(Material.class);
         ConfigurationSection hap = c.getConfigurationSection("armor_penalties.horse_armor_points");
@@ -158,7 +168,10 @@ public final class CavalryConfig {
         hazardMagma = c.getBoolean("traversal_rules.hazards.magma_block", true);
 
         waterEnabled = c.getBoolean("traversal_rules.water.enabled", true);
-        waterRefuseDepthAtLeast = c.getInt("traversal_rules.water.refuse_if_depth_at_least_blocks", 2);
+        waterRefuseDepthAtLeast = c.getDouble(
+                "traversal_rules.water.refuse_if_depth_at_least_blocks",
+                2.0
+        );
         waterAntiStuck = c.getBoolean("traversal_rules.water.anti_stuck_allow_if_all_neighbors_water", true);
 
         combatEnabled = c.getBoolean("mounted_combat.enabled", true);

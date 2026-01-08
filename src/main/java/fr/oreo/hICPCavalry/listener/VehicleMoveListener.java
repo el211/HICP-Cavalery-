@@ -36,11 +36,9 @@ public final class VehicleMoveListener implements Listener {
     private static final long WARNING_COOLDOWN = 500; // 500ms between warnings
     private static final long REAR_COOLDOWN = 1000;   // 1 second between rears
 
-    // NEW: Last safe vehicle location (used to teleport back and prevent jitter/rubberband)
+    // Last safe vehicle location (used to teleport back and prevent jitter/rubberband)
     private final Map<UUID, Location> lastSafeLocation = new HashMap<>();
 
-    // OPTIONAL: enable a tiny bounce-back push when blocked (client asked about "backwards velocity")
-    // If you don't want any push, keep this false.
     private static final boolean ENABLE_BOUNCE_BACK = true;
     private static final double BOUNCE_BACK_STRENGTH = 0.25; // 0.15-0.30 usually feels ok
 
@@ -184,7 +182,7 @@ public final class VehicleMoveListener implements Listener {
         // Reset velocity
         vehicle.setVelocity(new Vector(0, 0, 0));
 
-        // Optional bounce-back (feel like "backwards velocity")
+        // Optional bounce-back feel like "backwards velocity"
         if (ENABLE_BOUNCE_BACK && probe != null && probe.lengthSquared() > 0.0001) {
             Vector back = probe.clone().multiply(-BOUNCE_BACK_STRENGTH);
             back.setY(0.05); // small lift to "unstick"
@@ -242,7 +240,7 @@ public final class VehicleMoveListener implements Listener {
      * - Anti-stuck: if horse already in water, allow movement so it can swim out
      */
     private boolean shouldRefuseWater(Block waterStartFeet, LivingEntity vehicle) {
-        int depthN = Math.max(1, cfg.waterRefuseDepthAtLeast);
+        double depthN = Math.max(0.5, cfg.waterRefuseDepthAtLeast);
 
         int depth = 0;
         Block cursor = waterStartFeet;
@@ -298,7 +296,7 @@ public final class VehicleMoveListener implements Listener {
             cursor = cursor.getRelative(0, -1, 0);
             Material type = cursor.getType();
 
-            // Stop when we hit solid ground (not passable, not air/water)
+            // Stop when we hit solid ground
             if (!cursor.isPassable() && type != Material.AIR && type != Material.WATER) {
                 break;
             }

@@ -4,6 +4,7 @@ import fr.oreo.hICPCavalry.config.CavalryConfig;
 import fr.oreo.hICPCavalry.listener.MountListener;
 import fr.oreo.hICPCavalry.listener.SpawnListener;
 import fr.oreo.hICPCavalry.listener.VehicleMoveListener;
+import fr.oreo.hICPCavalry.service.LeashSinkingService;
 import fr.oreo.hICPCavalry.service.MountStatService;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -12,12 +13,16 @@ public final class HICPCavalry extends JavaPlugin {
 
     private CavalryConfig cfg;
     private MountStatService statService;
+    private LeashSinkingService leashSinkingService;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         this.cfg = new CavalryConfig(getConfig());
         this.statService = new MountStatService(this, cfg);
+        leashSinkingService = new LeashSinkingService(this, cfg);
+        getServer().getPluginManager().registerEvents(leashSinkingService, this);
+        leashSinkingService.start();
 
         Bukkit.getPluginManager().registerEvents(new SpawnListener(this, cfg, statService), this);
         Bukkit.getPluginManager().registerEvents(new MountListener(this, cfg, statService), this);
@@ -49,6 +54,8 @@ public final class HICPCavalry extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (leashSinkingService != null) leashSinkingService.stop();
+
         if (statService != null) statService.stop();
         getLogger().info("HICP_Cavalry disabled.");
     }

@@ -208,9 +208,12 @@ public final class MountStatService {
         double jumpPct = 0.0;
 
         if (cfg.armorEnabled) {
-            int totalPts = playerPts + mountPts;
+            double scaledMountPts = mountPts * cfg.horseArmorPointMultiplier;
+            double totalPts = playerPts + scaledMountPts;
+
             double armorSpeedPct = totalPts * cfg.speedPenaltyPerPointPct;
-            double armorJumpPct = totalPts * cfg.jumpPenaltyPerPointPct;
+            double armorJumpPct  = totalPts * cfg.jumpPenaltyPerPointPct;
+
             speedPct += armorSpeedPct;
             jumpPct += armorJumpPct;
 
