@@ -66,7 +66,6 @@ public final class MountStatService {
             logger.info("[Debug] Normalizing horse: " + h.getUniqueId());
         }
 
-        // (1) Max health
         AttributeInstance maxHealth = h.getAttribute(Attribute.MAX_HEALTH);
         if (maxHealth != null) {
             double oldHealth = maxHealth.getBaseValue();
@@ -86,7 +85,6 @@ public final class MountStatService {
             }
         }
 
-        // (2) Speed cap
         AttributeInstance ms = h.getAttribute(Attribute.MOVEMENT_SPEED);
         if (ms != null) {
             double oldSpeed = ms.getBaseValue();
@@ -100,7 +98,6 @@ public final class MountStatService {
             }
         }
 
-        // (3) Universal base jump height
         AttributeInstance js = h.getAttribute(Attribute.JUMP_STRENGTH);
         if (js != null) {
             double oldJump = js.getBaseValue();
@@ -136,7 +133,6 @@ public final class MountStatService {
                 continue;
             }
 
-            // Respect enable flags
             boolean horse = cfg.horsesEnabled && (mount instanceof Horse);
             boolean camel = cfg.camelsEnabled && ((mount instanceof Camel) || EntityUtil.isCamel(mount));
 
@@ -145,9 +141,6 @@ public final class MountStatService {
                 continue;
             }
 
-            // Only apply speed/jump penalties if allowed:
-            // - horses: yes (when horses enabled)
-            // - camels: ONLY if camels.apply_penalties = true
             boolean penaltiesAllowed = horse || (camel && cfg.camelApplyPenalties);
 
             if (cfg.debugEnabled && cfg.debugCamelProcessing && camel) {
@@ -203,7 +196,6 @@ public final class MountStatService {
             logger.info("[Debug] Total armor points: " + (playerPts + mountPts));
         }
 
-        // Separate reductions so config matches behavior 100%
         double speedPct = 0.0;
         double jumpPct = 0.0;
 
@@ -224,7 +216,6 @@ public final class MountStatService {
 
         if (cfg.envEnabled) {
             double env = environmentExtraPct(mount);
-            // Environment penalty applies to both speed & jump equally
             speedPct += env;
             jumpPct += env;
 
@@ -341,9 +332,7 @@ public final class MountStatService {
         if (ai != null) ai.setBaseValue(v);
     }
 
-    /**
-     * 1.21+: use keyed AttributeModifier API (no UUID constructor, no getUniqueId()).
-     */
+
     private void applySwordReach(Player p, boolean enable) {
         AttributeInstance reach = p.getAttribute(Attribute.ENTITY_INTERACTION_RANGE);
         if (reach == null) return;

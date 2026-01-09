@@ -30,18 +30,15 @@ public final class VehicleMoveListener implements Listener {
     private final CavalryConfig cfg;
     private int debugCounter = 0;
 
-    // Track last warning time AND last rear time to avoid spam/stacking
     private final Map<UUID, Long> lastWarningTime = new HashMap<>();
     private final Map<UUID, Long> lastRearTime = new HashMap<>();
-    private static final long WARNING_COOLDOWN = 500; // 500ms between warnings
-    private static final long REAR_COOLDOWN = 1000;   // 1 second between rears
+    private static final long WARNING_COOLDOWN = 500;
+    private static final long REAR_COOLDOWN = 1000;
 
-    // Last safe vehicle location (used to teleport back and prevent jitter/rubberband)
     private final Map<UUID, Location> lastSafeLocation = new HashMap<>();
 
     private static final boolean ENABLE_BOUNCE_BACK = true;
-    private static final double BOUNCE_BACK_STRENGTH = 0.25; // 0.15-0.30 usually feels ok
-
+    private static final double BOUNCE_BACK_STRENGTH = 0.25;
     public VehicleMoveListener(Plugin plugin, CavalryConfig cfg) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
@@ -74,7 +71,7 @@ public final class VehicleMoveListener implements Listener {
         Location to = e.getTo();
         if (to == null) return;
 
-        // Calculate horizontal movement
+
         double dx = to.getX() - from.getX();
         double dz = to.getZ() - from.getZ();
         double horizontalMovement = Math.sqrt(dx * dx + dz * dz);
@@ -86,7 +83,7 @@ public final class VehicleMoveListener implements Listener {
 
         if (horizontalMovement < 0.001) return;
 
-        // Calculate movement direction (horizontal only)
+
         Vector direction = to.toVector().subtract(from.toVector()).normalize();
         Vector probe = new Vector(direction.getX(), 0, direction.getZ()).normalize();
 
@@ -97,7 +94,6 @@ public final class VehicleMoveListener implements Listener {
             return;
         }
 
-        // Probe in front (body) then derive feet-step block
         Block frontBody = EntityUtil.blockAt(le, probe);
         if (frontBody == null) {
             if (cfg.debugEnabled) {
@@ -106,7 +102,6 @@ public final class VehicleMoveListener implements Listener {
             return;
         }
 
-        // The block the mount would actually step on (feet-level)
         Block frontFeet = frontBody.getRelative(0, -1, 0);
 
         if (cfg.debugEnabled) {
@@ -115,9 +110,7 @@ public final class VehicleMoveListener implements Listener {
                     ", frontFeet: " + frontFeet.getType() + " @ " + frontFeet.getLocation());
         }
 
-        // =========================
-        // WATER CHECKS (FEET LEVEL)
-        // =========================
+
         if (cfg.waterEnabled && EntityUtil.isWater(frontFeet.getType())) {
             if (cfg.debugEnabled) {
                 logger.info("[Debug] WATER DETECTED ahead (feet)!");
@@ -131,9 +124,7 @@ public final class VehicleMoveListener implements Listener {
             }
         }
 
-        // =========================
-        // CLIFF CHECK (FEET LEVEL)
-        // =========================
+
         if (cfg.cliffDropBlocks > 0) {
             if (cfg.debugEnabled) {
                 logger.info("[Debug] CHECKING FOR CLIFF (limit: " + cfg.cliffDropBlocks + " blocks)");
@@ -147,9 +138,6 @@ public final class VehicleMoveListener implements Listener {
             }
         }
 
-        // =========================
-        // HAZARD CHECK (FEET LEVEL)
-        // =========================
         if (cfg.hazardScanDepth > 0 && (cfg.hazardLava || cfg.hazardMagma)) {
             if (hasHazardBelow(frontFeet, cfg.hazardScanDepth)) {
                 blockMovement(e, v, player, "§6Hazard below!", Sound.BLOCK_FIRE_AMBIENT, probe);
@@ -157,42 +145,29 @@ public final class VehicleMoveListener implements Listener {
             }
         }
 
-        // If we reached here: movement is allowed -> store safe location
         lastSafeLocation.put(v.getUniqueId(), v.getLocation().clone());
     }
 
-    /**
-     * Movement blocker:
-     * - Cancels player move
-     * - Teleports vehicle back to last safe location (prevents jitter / rubberband)
-     * - Sets velocity to 0
-     * - Optional tiny bounce-back velocity (client request)
-     * - Horse rear visual (cooldown-protected)
-     * - Actionbar + sound (cooldown-protected)
-     */
+
     private void blockMovement(PlayerMoveEvent e, Entity vehicle, Player player, String message, Sound sound, Vector probe) {
         e.setCancelled(true);
 
-        // Teleport back to last safe location first (this is what fixes the "it still goes forward / jitter")
         Location safe = lastSafeLocation.get(vehicle.getUniqueId());
         if (safe != null) {
             vehicle.teleport(safe);
         }
 
-        // Reset velocity
         vehicle.setVelocity(new Vector(0, 0, 0));
 
-        // Optional bounce-back feel like "backwards velocity"
         if (ENABLE_BOUNCE_BACK && probe != null && probe.lengthSquared() > 0.0001) {
             Vector back = probe.clone().multiply(-BOUNCE_BACK_STRENGTH);
-            back.setY(0.05); // small lift to "unstick"
+            back.setY(0.05);
             vehicle.setVelocity(back);
         }
 
         long now = System.currentTimeMillis();
         UUID vehicleId = vehicle.getUniqueId();
 
-        // Rear cooldown (prevents rocket launch)
         Long lastRear = lastRearTime.get(vehicleId);
         boolean canRear = (lastRear == null || (now - lastRear) > REAR_COOLDOWN);
 
@@ -218,7 +193,6 @@ public final class VehicleMoveListener implements Listener {
             logger.info("[Debug] Rear on cooldown, skipping to prevent rocket launch");
         }
 
-        // Sound & actionbar cooldown (per-player)
         UUID playerId = player.getUniqueId();
         Long lastWarning = lastWarningTime.get(playerId);
 
@@ -234,11 +208,7 @@ public final class VehicleMoveListener implements Listener {
         }
     }
 
-    /**
-     * Water refusal:
-     * - Uses cfg.waterRefuseDepthAtLeast properly by scanning downward for consecutive water blocks
-     * - Anti-stuck: if horse already in water, allow movement so it can swim out
-     */
+
     private boolean shouldRefuseWater(Block waterStartFeet, LivingEntity vehicle) {
         double depthN = Math.max(0.5, cfg.waterRefuseDepthAtLeast);
 
@@ -258,7 +228,6 @@ public final class VehicleMoveListener implements Listener {
 
         if (!deep) return false;
 
-        // Anti-stuck: allow movement ONLY if horse is already in water
         if (cfg.waterAntiStuck) {
             Block below = vehicle.getLocation().getBlock().getRelative(0, -1, 0);
             boolean horseIsInWater = EntityUtil.isWater(below.getType());
@@ -267,19 +236,15 @@ public final class VehicleMoveListener implements Listener {
                 logger.info("[Debug] Anti-stuck check - Horse currently in water: " + horseIsInWater);
             }
 
-            if (horseIsInWater) return false; // allow swimming out
-            return true; // block entering deep water from land
+            if (horseIsInWater) return false;
+            return true;
         }
 
         return true;
     }
 
-    /**
-     * Cliff detection:
-     * We consider "cliff" if the ground is missing for more than dropLimit blocks below the step position.
-     */
+
     private boolean isCliffDrop(Block stepBlockFeet, double dropLimit) {
-        // If this is solid ground, it isn't a cliff at the step position
         Material typeHere = stepBlockFeet.getType();
         if (!stepBlockFeet.isPassable() && typeHere != Material.AIR && typeHere != Material.WATER) {
             if (cfg.debugEnabled) {
@@ -296,7 +261,6 @@ public final class VehicleMoveListener implements Listener {
             cursor = cursor.getRelative(0, -1, 0);
             Material type = cursor.getType();
 
-            // Stop when we hit solid ground
             if (!cursor.isPassable() && type != Material.AIR && type != Material.WATER) {
                 break;
             }

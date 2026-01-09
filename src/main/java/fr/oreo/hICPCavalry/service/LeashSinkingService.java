@@ -78,7 +78,6 @@ public final class LeashSinkingService implements Listener {
                 continue;
             }
 
-            // Only when being led (no rider + leashed)
             if (!horse.getPassengers().isEmpty()) continue;
 
             if (!horse.isLeashed()) {
@@ -86,20 +85,17 @@ public final class LeashSinkingService implements Listener {
                 continue;
             }
 
-            // In water check (feet/below)
             Material feet = horse.getLocation().getBlock().getType();
             Material below = horse.getLocation().getBlock().getRelative(0, -1, 0).getType();
             if (!EntityUtil.isWater(feet) && !EntityUtil.isWater(below)) continue;
 
             int pts = ArmorPoints.getHorseArmorPoints(horse, cfg.horseArmorPoints, cfg.leatherCountsAsZero);
 
-            // Leather should be leadable, copper+ should sink
             if (pts < cfg.leadSinkStartHorseArmorPoints) continue;
 
             Vector vel = horse.getVelocity();
             double down = -Math.abs(cfg.leadSinkDownVelocityPerTick);
 
-            // Don’t fight stronger downward movement
             double newY = Math.min(vel.getY(), down);
 
             horse.setVelocity(new Vector(vel.getX(), newY, vel.getZ()));

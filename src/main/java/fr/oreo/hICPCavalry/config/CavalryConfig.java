@@ -9,7 +9,6 @@ import java.util.Map;
 
 public final class CavalryConfig {
 
-    // Debug settings
     public final boolean debugEnabled;
     public final boolean debugHorseNormalization;
     public final boolean debugHorseStatCalculations;
