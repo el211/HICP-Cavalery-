@@ -50,7 +50,6 @@ public final class VehicleMoveListener implements Listener {
     public void onPlayerMove(PlayerMoveEvent e) {
         debugCounter++;
         if (debugCounter % 100 == 0) {
-            logger.info("[Debug] PlayerMoveEvent is firing! (counter: " + debugCounter + ")");
         }
 
         if (!cfg.traversalEnabled) return;
